@@ -16,19 +16,14 @@ vector<vector<string>> readDataFile(string fileName){
     string inputs[14];
     vector<string> rowData;
     while(getline(dataFile, inputs[0], ',')){
-        getline(dataFile, inputs[1], ',');
-        getline(dataFile, inputs[2], ',');
-        getline(dataFile, inputs[3], ',');
-        getline(dataFile, inputs[4], ',');
-        getline(dataFile, inputs[5], ',');
-        getline(dataFile, inputs[6], ',');
-        getline(dataFile, inputs[7], ',');
-        getline(dataFile, inputs[8], ',');
-        getline(dataFile, inputs[9], ',');
-        getline(dataFile, inputs[10], ',');
-        getline(dataFile, inputs[11], ',');
-        getline(dataFile, inputs[12], ',');
-        getline(dataFile, inputs[13], '\n');
+        for(int i = 1; i<14; i++){
+            if(i != 13){
+                getline(dataFile, inputs[i], ',');
+            }
+            else{
+                getline(dataFile, inputs[i], '\n');
+            }
+        }
         for(int i = 0; i<14; i++){
             rowData.push_back(inputs[i]);
         }
