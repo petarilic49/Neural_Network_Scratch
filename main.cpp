@@ -47,25 +47,40 @@ void readDataInputs(vector<vector<string>> datainputs){
     return;
 }
 
-void splitData(vector<vector<string>> totalData, vector<vector<string>> *training, vector<vector<string>> *testing){
+void splitData(vector<vector<string>> totalData, vector<vector<string>> *xtraining, vector<vector<string>> *ytraining, vector<vector<string>> *xtesting, vector<vector<string>> *ytesting){
     
-    string input[14];
-    vector<string> rowdata;
+    vector<string> xrowdata, yrowdata;
     
     for(int i = 0; i<totalData.size(); i++){
         if(i<round(totalData.size() * 0.7)){
             for(int j = 0; j<totalData[i].size(); j++){
-                rowdata.push_back(totalData[i][j]);
+                if(j<13){
+                    xrowdata.push_back(totalData[i][j]);
+                }
+                else{
+                    yrowdata.push_back(totalData[i][j]);
+                }
+                
             }
-            training->push_back(rowdata);
-            rowdata.clear();
+            xtraining->push_back(xrowdata);
+            xrowdata.clear();
+            ytraining->push_back(yrowdata);
+            yrowdata.clear();
         }
         else{
             for(int j = 0; j<totalData[i].size(); j++){
-                rowdata.push_back(totalData[i][j]);
+                if(j<13){
+                    xrowdata.push_back(totalData[i][j]);
+                }
+                else{
+                    yrowdata.push_back(totalData[i][j]);
+                }
+                
             }
-            testing->push_back(rowdata);
-            rowdata.clear();
+            xtesting->push_back(xrowdata);
+            xrowdata.clear();
+            ytesting->push_back(yrowdata);
+            yrowdata.clear();
         }
     }
     return;
@@ -77,10 +92,9 @@ int main()
     vector<vector<string>> data;
     data = readDataFile("heart.csv");
     //readDataInputs(data);
-    vector<vector<string>> trainingData;
-    vector<vector<string>> testingData;
+    vector<vector<string>> x_trainingData, y_trainingData, x_testingData, y_testingData;
 
-    splitData(data, &trainingData, &testingData);
+    splitData(data, &x_trainingData, &y_trainingData, &x_testingData, &y_testingData);
 
     // Next I want to split the data into training and testing data
 
