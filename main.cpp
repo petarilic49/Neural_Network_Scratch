@@ -7,11 +7,11 @@
 using namespace std;
 
 // Function reads the .csv file and stores/returns the data inputs in a 2D vector
-vector<vector<string>> readDataFile(){
+vector<vector<string>> readDataFile(string fileName){
 
     //Input the heart data into the program 
     ifstream dataFile;
-    dataFile.open("heart.csv");
+    dataFile.open(fileName);
     vector<vector<string>> dataEntries;
     string inputs[14];
     vector<string> rowData;
@@ -41,20 +41,22 @@ vector<vector<string>> readDataFile(){
     return dataEntries;
 }
 
+void readDataInputs(vector<vector<string>> datainputs){
+    for(int i = 0; i<datainputs.size(); i++){
+        for(int j = 0; j<datainputs[i].size(); j++){
+            cout << datainputs[i][j] << " ";
+        }
+        cout << endl;
+    }
+}
+
 int main()
 {
     //Input the heart data into the program 
     vector<vector<string>> data;
-    data = readDataFile();
+    data = readDataFile("heart.csv");
+    readDataInputs(data);
 
-    
-    for(int i = 0; i<data.size(); i++){
-        for(int j = 0; j<data[i].size(); j++){
-            cout << data[i][j] << " ";
-        }
-        cout << endl;
-    }
-    
 
     return 0;
 }
