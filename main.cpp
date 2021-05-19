@@ -106,8 +106,32 @@ vector<vector<double>> string_to_double(vector<vector<string>> d){
 }
 
 // Function that will normalize our input data
-void normalizeData(vector<vector<string>> *x_training, vector<vector<string>> *x_testing){
-    
+void normalizeData(vector<vector<double>> *dt){
+    cout << "Normalizing Data" << endl;
+    double min = 10000;
+    double max = 0;
+    double hold = 0;
+    int col = 0;
+
+    while (col < 14){
+        for(int i = 0; i<dt->size(); i++){
+            if((*dt)[i][col] < min){
+                min = (*dt)[i][col];
+            }
+            else if((*dt)[i][col] > max){
+                max = (*dt)[i][col];
+            }
+        }
+        for(int i = 0; i<dt->size(); i++){
+            hold = (*dt)[i][col];
+            (*dt)[i][col] = ((*dt)[i][col] - min) / (max - min);
+        }
+        min = 10000;
+        max = 0;
+        col++;
+    }
+
+    cout << "Done normalizing data" << endl;
     return;
 }
 
@@ -115,19 +139,24 @@ int main()
 {
     //Input the heart data into the program 
     vector<vector<string>> sdata;
-    sdata = readDataFile("heart.csv");
+    sdata = readDataFile("heart.csv"); // The data is all stored as strings, but we need them as doubles
     vector<vector<double>> data;
-    data = string_to_double(sdata);
+    data = string_to_double(sdata); // Convert the dataset to vector of type double
 
   
     //readDataInputs(data);
     vector<vector<double>> x_trainingData, y_trainingData, x_testingData, y_testingData;
-
+    // Next I want to split the data into training and testing data
     splitData(data, &x_trainingData, &y_trainingData, &x_testingData, &y_testingData);
+
+    //Next want to scale the input data for best practice 
+    normalizeData(&x_trainingData);
+    normalizeData(&x_testingData);
+
 
     
 
-    // Next I want to split the data into training and testing data
+    
 
     return 0;
 }
