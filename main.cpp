@@ -2,6 +2,7 @@
 #include <vector>
 #include <string>
 #include <cmath>
+#include <sstream> //Used to convert the string values into integer values
 #include <fstream> //Input/output stream class to operate on files
 
 
@@ -37,7 +38,7 @@ vector<vector<string>> readDataFile(string fileName){
     return dataEntries;
 }
 
-void readDataInputs(vector<vector<string>> datainputs){
+void readDataInputs(vector<vector<double>> datainputs){
     for(int i = 0; i<datainputs.size(); i++){
         for(int j = 0; j<datainputs[i].size(); j++){
             cout << datainputs[i][j] << " ";
@@ -47,9 +48,9 @@ void readDataInputs(vector<vector<string>> datainputs){
     return;
 }
 
-void splitData(vector<vector<string>> totalData, vector<vector<string>> *xtraining, vector<vector<string>> *ytraining, vector<vector<string>> *xtesting, vector<vector<string>> *ytesting){
+void splitData(vector<vector<double>> totalData, vector<vector<double>> *xtraining, vector<vector<double>> *ytraining, vector<vector<double>> *xtesting, vector<vector<double>> *ytesting){
     
-    vector<string> xrowdata, yrowdata;
+    vector<double> xrowdata, yrowdata;
     
     for(int i = 0; i<totalData.size(); i++){
         if(i<round(totalData.size() * 0.7)){
@@ -86,15 +87,45 @@ void splitData(vector<vector<string>> totalData, vector<vector<string>> *xtraini
     return;
 }
 
+//Function that will convert the 2D vector of strings into 2D vector of ints
+vector<vector<double>> string_to_double(vector<vector<string>> d){
+    cout << "In conversion function" << endl;
+    vector<vector<double>> convertedData;
+    vector<double> rowHolder;
+    for(int i = 1; i<d.size(); i++){ // Starting at 1 because the first row is the name of the columns which we dont care about
+        for(int j = 0; j<d[i].size(); j++){ 
+            stringstream valHolder((d[i][j]));
+            double x = 0;
+            valHolder >> x;
+            rowHolder.push_back(x);
+        }
+        convertedData.push_back(rowHolder);
+        rowHolder.clear();
+    }
+    return convertedData;
+}
+
+// Function that will normalize our input data
+void normalizeData(vector<vector<string>> *x_training, vector<vector<string>> *x_testing){
+    
+    return;
+}
+
 int main()
 {
     //Input the heart data into the program 
-    vector<vector<string>> data;
-    data = readDataFile("heart.csv");
+    vector<vector<string>> sdata;
+    sdata = readDataFile("heart.csv");
+    vector<vector<double>> data;
+    data = string_to_double(sdata);
+
+  
     //readDataInputs(data);
-    vector<vector<string>> x_trainingData, y_trainingData, x_testingData, y_testingData;
+    vector<vector<double>> x_trainingData, y_trainingData, x_testingData, y_testingData;
 
     splitData(data, &x_trainingData, &y_trainingData, &x_testingData, &y_testingData);
+
+    
 
     // Next I want to split the data into training and testing data
 
