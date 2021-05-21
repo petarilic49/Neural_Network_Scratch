@@ -25,15 +25,35 @@ class neural_layer{
             srand( (unsigned)time( NULL ) );
             for(int i = 0; i<weights.rows(); i++){
                 for(int j = 0; j<weights.cols(); j++){
-                    weights(i, j) = (double) rand()/RAND_MAX;
+                    weights(i, j) = (double) rand()/RAND_MAX - 0.35; // Added the -0.35 to offset the weights and make sure we have negative weights
                 }
             }  
             return;
         }
-        void forward(MatrixXd inputs){
+        void weightedSum(MatrixXd inputs){
             // Creates forward propogation on the layer, ie generates the output by weighted sum * activation function
             outputs.resize(1, neurons);
             outputs = inputs * weights + biases;
+            return;
+        }
+        void ReLUactivation(){
+            for(int i = 0; i<outputs.rows(); i++){
+                for(int j = 0; j<outputs.cols(); j++){
+                    if(outputs(i, j) < 0.0){
+                        outputs(i, j) = 0.0;  
+                    }
+                }
+            }
+            return;
+        }
+        void Sigactivation(){
+            double hold = 0;
+            for(int i = 0; i<outputs.rows(); i++){
+                for(int j = 0; j<outputs.cols(); j++){
+                    hold = outputs(i, j);
+                    outputs(i,j) = 1 / (1 + exp(-1*hold)); 
+                }
+            }
             return;
         }
 };
@@ -280,8 +300,11 @@ int main()
     readData(hidden_layer1.weights);
     cout << "Biases of hidden layer are: " << endl;
     readData(hidden_layer1.biases);
-    hidden_layer1.forward(in);
+    hidden_layer1.weightedSum(in);
     cout << "Output of hidden layer are: " << endl;
+    readData(hidden_layer1.outputs);
+    hidden_layer1.Sigactivation();
+    cout << "Activated hidden layer output: " << endl;
     readData(hidden_layer1.outputs);
 
    
