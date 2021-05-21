@@ -10,28 +10,30 @@
 
 using namespace std;
 using Eigen::MatrixXd;
-using namespace Eigen;
 
 // Create a class that will stores a dense layer
 class neural_layer{
     public:
-    vector<vector<double>> weights, biases;
+    MatrixXd weights, biases, outputs;
+    int neurons;
         neural_layer(int num_inputs, int num_neurons){ //Constructor
             // Need to randomly generate weights for each input to each neuron
-            vector<double> whold;
+            neurons = num_neurons;
+            weights.resize(num_inputs, num_neurons);
+            biases.resize(1, num_neurons);
+            biases.setZero();
             srand( (unsigned)time( NULL ) );
-            for(int i = 0; i<num_neurons; i++){ // Column
-                for(int j = 0; j<num_inputs; j++){ // Row
-                    //cout << "Randon Weight is: " << (double) rand()/RAND_MAX << endl;
-                    whold.push_back((double) rand()/RAND_MAX);
+            for(int i = 0; i<weights.rows(); i++){
+                for(int j = 0; j<weights.cols(); j++){
+                    weights(i, j) = (double) rand()/RAND_MAX;
                 }
-                weights.push_back(whold);
-                whold.clear();
-            }
+            }  
             return;
         }
-        void forward(){
-            // Creates forward propogation on the layer
+        void forward(MatrixXd inputs){
+            // Creates forward propogation on the layer, ie generates the output by weighted sum * activation function
+            outputs.resize(1, neurons);
+            outputs = inputs * weights + biases;
             return;
         }
 };
@@ -123,6 +125,11 @@ void removeRow(MatrixXd &mat, int rowtoRemove){
     }
     return;
 }*/
+
+void readData(MatrixXd &d){
+    cout << d << endl;
+    return;
+}
 
 /*void splitData(vector<vector<double>> totalData, vector<vector<double>> *xtraining, vector<vector<double>> *ytraining, vector<vector<double>> *xtesting, vector<vector<double>> *ytesting){
     
@@ -265,6 +272,17 @@ int main()
 
     normalizeData(x_training, x_training.rows(), x_training.cols());
     normalizeData(x_testing, x_testing.rows(), x_testing.cols());
+
+    MatrixXd in(1, 4);
+    in << 1, 2, 3, 4;
+    neural_layer hidden_layer1(4, 3);
+    cout << "Weights of hidden layer are: " << endl;
+    readData(hidden_layer1.weights);
+    cout << "Biases of hidden layer are: " << endl;
+    readData(hidden_layer1.biases);
+    hidden_layer1.forward(in);
+    cout << "Output of hidden layer are: " << endl;
+    readData(hidden_layer1.outputs);
 
    
 
