@@ -69,9 +69,14 @@ class neural_layer{
             }
             double hold = 0;
             for(int i = 0; i<actuals.cols(); i++){ // Only need one for loop because we know the actuals are transpose to row vector
-                hold = hold + ((actuals(0, i)*log(outputs(0, i))) + ((1 - actuals(0,i))*(1 - log(outputs(0,i)))));
+                if(actuals(0, i) == 1){
+                    hold = hold + (-1.0 * log(outputs(0,i)));
+                }
+                else if(actuals(0,i) == 0){
+                    hold = hold + (-1.0 * log(1 - outputs(0,i)));
+                }
                 if(i == (actuals.cols() - 1)){
-                    costResult(costResult.rows() - 1, 0) = -1.0 * (hold / (i + 1));
+                    costResult(costResult.rows() - 1, 0) = (hold / (i + 1));
                 }
             }
             cout << "Done cost function" << endl;
