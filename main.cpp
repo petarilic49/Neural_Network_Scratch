@@ -14,7 +14,7 @@ using Eigen::MatrixXd;
 // Create a class that will stores a dense layer
 class neural_layer{
     public:
-    MatrixXd weights, biases, outputs;
+    MatrixXd weights, biases, outputs, costResult;
     int neurons;
         neural_layer(int num_inputs, int num_neurons){ //Constructor
             // Need to randomly generate weights for each input to each neuron
@@ -55,6 +55,25 @@ class neural_layer{
                 }
             }
             return;
+        }
+        // Since this is a binary classification problem it is best to use a binary cross entropy cost function to for SGD 
+        void costFunction (MatrixXd actuals){ // Assuming that we are training the model with a batch size of x (ie actuals has x values and output has x predicted probabilities)
+            // Transpose the batch of actual values
+            actuals.transpose();
+            if(costResult.rows() == 0 || costResult.cols() == 0){ // If this is the first time the cost function is being called then initialize the matrix
+                costResult.resize(1, 1);
+            }
+            else{// Add a row to the bottom of the matrix to hold the losses of the new inputs/forward propagation
+                costResult.conservativeResize(costResult.rows() + 1, costResult.cols());
+                costResult.row(costResult.rows() - 1).setZero(); // Initialize the losses as zero to start
+            }
+            double hold = 0;
+            for(int i = 0; i<actuals.cols(); i++){ // Only need one for loop because we know the actuals are transpose to row vector
+                hold = (actuals(0, i)*log(outputs(0, i))) + ((1 - actuals(0,i))*(1 - log(outputs(0,i))));
+                if(i == (actuals.cols() - 1)){
+                    costResult(costResult.rows(), 0) = hold / i;
+                }
+            }
         }
 };
 
@@ -307,6 +326,9 @@ int main()
     cout << "Activated hidden layer output: " << endl;
     readData(hidden_layer1.outputs);
 
+
+    // Because this is a binary clssification problem, we need to use a cross entropy (ie logarithmic loss) loss function to compare the output and actual values
+    // Also need to implement the batch and epoch user interface of the neural network 
    
 
     
