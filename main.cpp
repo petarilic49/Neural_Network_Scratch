@@ -22,6 +22,9 @@ class neural_layer{
             weights.resize(num_inputs, num_neurons);
             biases.resize(1, num_neurons);
             biases.setZero();
+            // Initialize the costResult for the cost function
+            costResult.resize(1,1);
+            costResult.setZero();
             srand( (unsigned)time( NULL ) );
             for(int i = 0; i<weights.rows(); i++){
                 for(int j = 0; j<weights.cols(); j++){
@@ -60,20 +63,18 @@ class neural_layer{
         void costFunction (MatrixXd actuals){ // Assuming that we are training the model with a batch size of x (ie actuals has x values and output has x predicted probabilities)
             // Transpose the batch of actual values
             actuals.transpose();
-            if(costResult.rows() == 0 || costResult.cols() == 0){ // If this is the first time the cost function is being called then initialize the matrix
-                costResult.resize(1, 1);
-            }
-            else{// Add a row to the bottom of the matrix to hold the losses of the new inputs/forward propagation
+            if(costResult.rows() != 1){// Add a row to the bottom of the matrix to hold the losses of the new inputs/forward propagation
                 costResult.conservativeResize(costResult.rows() + 1, costResult.cols());
                 costResult.row(costResult.rows() - 1).setZero(); // Initialize the losses as zero to start
             }
             double hold = 0;
             for(int i = 0; i<actuals.cols(); i++){ // Only need one for loop because we know the actuals are transpose to row vector
-                hold = (actuals(0, i)*log(outputs(0, i))) + ((1 - actuals(0,i))*(1 - log(outputs(0,i))));
+                hold = hold + ((actuals(0, i)*log(outputs(0, i))) + ((1 - actuals(0,i))*(1 - log(outputs(0,i)))));
                 if(i == (actuals.cols() - 1)){
-                    costResult(costResult.rows(), 0) = hold / i;
+                    costResult(costResult.rows() - 1, 0) = -1.0 * (hold / (i + 1));
                 }
             }
+            cout << "Done cost function" << endl;
         }
 };
 
@@ -325,6 +326,11 @@ int main()
     hidden_layer1.Sigactivation();
     cout << "Activated hidden layer output: " << endl;
     readData(hidden_layer1.outputs);
+    MatrixXd out(3, 1);
+    out << 0, 1, 0;
+    hidden_layer1.costFunction(out);
+    cout << "Cost Function Output: " << endl;
+    readData(hidden_layer1.costResult);
 
 
     // Because this is a binary clssification problem, we need to use a cross entropy (ie logarithmic loss) loss function to compare the output and actual values
