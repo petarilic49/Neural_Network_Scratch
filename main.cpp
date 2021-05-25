@@ -25,12 +25,12 @@ class neural_layer{
             // Initialize the costResult for the cost function
             costResult.resize(1,1);
             costResult.setZero();
-            srand( (unsigned)time( NULL ) );
+            //srand(time(NULL)); // For some reason this was making the weights of the output layer identical to the first row of weights in the hidden layer weights matrix
             for(int i = 0; i<weights.rows(); i++){
                 for(int j = 0; j<weights.cols(); j++){
-                    weights(i, j) = (double) rand()/RAND_MAX - 0.35; // Added the -0.35 to offset the weights and make sure we have negative weights
+                    weights(i, j) = (double)rand()/RAND_MAX - 0.35; // Added the -0.35 to offset the weights and make sure we have negative weights
                 }
-            }  
+            }
             return;
         }
         void weightedSum(MatrixXd inputs){
@@ -79,9 +79,46 @@ class neural_layer{
                     costResult(costResult.rows() - 1, 0) = (hold / (i + 1));
                 }
             }
-            cout << "Done cost function" << endl;
         }
 };
+
+void backPropagate(neural_layer out, neural_layer hidden, MatrixXd actuals, MatrixXd inputs){ // Function is used to backpropagate through the specific layer and update the weights
+    // Start with the output layer (ie in out case its just the weights of the output neuron)
+    // Three partial derivatives need to be mulitplied (use naming convention as: y_p_x partial derivative of y with respect to x)
+    MatrixXd C_p_w((out.weights.rows() * out.weights.cols()) + (hidden.weights.rows() * hidden.weights.cols()), 1); // Gradient vector (ie holds the gradient with respect to each weight)
+    C_p_w.setZero();
+    double C_p_y = 0; // Only one value because there is only one output from the neural network
+    double y_p_z = 0;
+    int count = 0;
+    C_p_y = (out.outputs(0,0) - actuals(0,0))/((out.outputs(0,0) - 1)*out.outputs(0,0) - 1);
+    for(int i = 0; i<hidden.outputs.cols(); i++){
+        // Find the gradient of the first output 
+        y_p_z = exp(hidden.outputs(0,i)) / pow((exp(hidden.outputs(0,i)) + 1),2);
+        cout<<"Inputting " << count << " index for the gradient vector" << endl;
+        C_p_w(count, 0) = C_p_y * y_p_z * hidden.outputs(0,i);
+        cout << "Gradient is: " << C_p_w(count, 0) << endl;
+        count++;
+        for(int j = 0; j<hidden.weights.rows(); j++){
+            double der = 0;
+            if(hidden.outputs(0, i)>0){
+                der = 1;
+            }else{
+                der = 0;
+            }
+            cout<<"Inputting " << count << " index for the gradient vector" << endl;
+            C_p_w(count, 0) = C_p_y * y_p_z * out.weights(0, i) * der * inputs(0,j);
+            cout << "Gradient is: " << C_p_w(count, 0) << endl;
+            count++;
+        }
+    }
+    cout << "The gradient vector is: " << endl;
+    cout << C_p_w << endl;
+   
+    
+
+
+    return;
+}
 
 // Function reads the .csv file and stores/returns the data inputs in a 2D vector
 /*vector<vector<string>> readDataFile(string fileName){
@@ -323,20 +360,25 @@ int main()
     neural_layer hidden_layer1(4, 3);
     cout << "Weights of hidden layer are: " << endl;
     readData(hidden_layer1.weights);
-    cout << "Biases of hidden layer are: " << endl;
-    readData(hidden_layer1.biases);
+    //cout << "Biases of hidden layer are: " << endl;
+    //readData(hidden_layer1.biases);
     hidden_layer1.weightedSum(in);
-    cout << "Output of hidden layer are: " << endl;
-    readData(hidden_layer1.outputs);
-    hidden_layer1.Sigactivation();
+    hidden_layer1.ReLUactivation();
     cout << "Activated hidden layer output: " << endl;
     readData(hidden_layer1.outputs);
-    MatrixXd out(3, 1);
-    out << 0, 1, 0;
-    hidden_layer1.costFunction(out);
+    neural_layer out_layer(3, 1);
+    cout << "Weights of output layer are: " << endl;
+    readData(out_layer.weights);
+    out_layer.weightedSum(hidden_layer1.outputs);
+    out_layer.Sigactivation();
+    cout << "Activated output layer output: " << endl;
+    readData(out_layer.outputs);
+    MatrixXd out(1, 1);
+    out << 1;
+    out_layer.costFunction(out);
     cout << "Cost Function Output: " << endl;
-    readData(hidden_layer1.costResult);
-
+    readData(out_layer.costResult);
+    backPropagate(out_layer, hidden_layer1, out, in);
 
     // Because this is a binary clssification problem, we need to use a cross entropy (ie logarithmic loss) loss function to compare the output and actual values
     // Also need to implement the batch and epoch user interface of the neural network 
