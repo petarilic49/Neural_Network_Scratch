@@ -106,7 +106,7 @@ void backPropagate(neural_layer out, neural_layer hidden, MatrixXd actuals, Matr
                 der = 0;
             }
             cout<<"Inputting " << count << " index for the gradient vector" << endl;
-            C_p_w(count, 0) = C_p_y * y_p_z * out.weights(0, i) * der * inputs(0,j);
+            C_p_w(count, 0) = C_p_y * y_p_z * out.weights(i, 0) * der * inputs(0,j);
             cout << "Gradient is: " << C_p_w(count, 0) << endl;
             count++;
         }
