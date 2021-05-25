@@ -114,9 +114,17 @@ void backPropagate(neural_layer out, neural_layer hidden, MatrixXd actuals, Matr
     cout << "The gradient vector is: " << endl;
     cout << C_p_w << endl;
    
-    
-
-
+    // Chunk that update the weights of the layers
+    double learn_rate = 0.5;
+    count = 0;
+    for(int i = 0; i<out.weights.cols(); i++){
+        out.weights(0, i) = out.weights(0, i) - learn_rate*C_p_w(count, 0);
+        count++;
+        for(int j = 0; j<hidden.weights.rows(); j++){
+            hidden.weights(i,j) = hidden.weights(i,j) - learn_rate*C_p_w(count, 0);
+            count++;
+        }
+    }
     return;
 }
 
