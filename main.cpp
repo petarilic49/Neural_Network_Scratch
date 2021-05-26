@@ -115,16 +115,16 @@ void backPropagate(neural_layer &out, neural_layer &hidden, MatrixXd actuals, Ma
     //cout << C_p_w << endl;
    
     // Chunk that update the weights of the layers
-    double learn_rate = 1;
+    double learn_rate = 0.5;
     count = 0;
     for(int i = 0; i<out.weights.rows(); i++){
         out.weights(i, 0) = out.weights(i, 0) - learn_rate*C_p_w(count, 0);
-        cout << " to new weight: " << out.weights(i, 0) << endl;
+        //cout << " to new weight: " << out.weights(i, 0) << endl;
         count++;
         for(int j = 0; j<hidden.weights.rows(); j++){
-            cout << "Changing old weight: " << hidden.weights(j, i);
+            //cout << "Changing old weight: " << hidden.weights(j, i);
             hidden.weights(j, i) = hidden.weights(j, i) - learn_rate*C_p_w(count, 0);
-            cout << "To new weight: " << hidden.weights(j, i) << endl;
+            //cout << "To new weight: " << hidden.weights(j, i) << endl;
             count++;
         }
     }
