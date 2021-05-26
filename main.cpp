@@ -14,7 +14,8 @@ using Eigen::MatrixXd;
 // Create a class that will stores a dense layer
 class neural_layer{
     public:
-    MatrixXd weights, biases, outputs, costResult;
+    MatrixXd weights, biases, outputs;
+    double costResult;
     int neurons;
         neural_layer(int num_inputs, int num_neurons){ //Constructor
             // Need to randomly generate weights for each input to each neuron
@@ -23,8 +24,10 @@ class neural_layer{
             biases.resize(1, num_neurons);
             biases.setZero();
             // Initialize the costResult for the cost function
-            costResult.resize(1,1);
-            costResult.setZero();
+            costResult = 0;
+            // Initialize the outputs of the layer and set to 0
+            outputs.resize(1, neurons);
+            outputs.setZero();
             //srand(time(NULL)); // For some reason this was making the weights of the output layer identical to the first row of weights in the hidden layer weights matrix
             for(int i = 0; i<weights.rows(); i++){
                 for(int j = 0; j<weights.cols(); j++){
@@ -35,7 +38,6 @@ class neural_layer{
         }
         void weightedSum(MatrixXd inputs){
             // Creates forward propogation on the layer, ie generates the output by weighted sum * activation function
-            outputs.resize(1, neurons);
             outputs = inputs * weights + biases;
             return;
         }
@@ -59,15 +61,19 @@ class neural_layer{
             }
             return;
         }
-        // Since this is a binary classification problem it is best to use a binary cross entropy cost function to for SGD 
+        // Since this is a binary classification problem it is best to use a binary cross entropy cost function to for SGD
+        // Also since the data set is so small a batch size of 1 will be used ie the gradient algorithm will be a stochastic gradient decent (SGD) 
         void costFunction (MatrixXd actuals){ // Assuming that we are training the model with a batch size of x (ie actuals has x values and output has x predicted probabilities)
-            // Transpose the batch of actual values
-            actuals.transpose();
-            if(costResult.rows() != 1){// Add a row to the bottom of the matrix to hold the losses of the new inputs/forward propagation
-                costResult.conservativeResize(costResult.rows() + 1, costResult.cols());
-                costResult.row(costResult.rows() - 1).setZero(); // Initialize the losses as zero to start
-            }
             double hold = 0;
+            if(actuals(0, 0) == 1){
+                    hold = (-1.0 * log(outputs(0,0)));
+            }
+            else if(actuals(0,0) == 0){
+                    hold = (-1.0 * log(1 - outputs(0,0)));
+            }
+            costResult = hold;
+    
+            /*double hold = 0;
             for(int i = 0; i<actuals.cols(); i++){ // Only need one for loop because we know the actuals are transpose to row vector
                 if(actuals(0, i) == 1){
                     hold = hold + (-1.0 * log(outputs(0,i)));
@@ -78,7 +84,7 @@ class neural_layer{
                 if(i == (actuals.cols() - 1)){
                     costResult(costResult.rows() - 1, 0) = (hold / (i + 1));
                 }
-            }
+            }*/
         }
 };
 
@@ -90,7 +96,8 @@ void backPropagate(neural_layer &out, neural_layer &hidden, MatrixXd actuals, Ma
     double C_p_y = 0; // Only one value because there is only one output from the neural network
     double y_p_z = 0;
     int count = 0;
-    C_p_y = (out.outputs(0,0) - actuals(0,0))/((out.outputs(0,0) - 1)*out.outputs(0,0) - 1);
+    C_p_y = -1.0 * (out.outputs(0,0) - actuals(0,0))/((out.outputs(0,0) - 1)*out.outputs(0,0));
+    cout << "C_p_y: " << C_p_y << endl;
     for(int i = 0; i<hidden.outputs.cols(); i++){
         // Find the gradient of the first output 
         y_p_z = exp(hidden.outputs(0,i)) / pow((exp(hidden.outputs(0,i)) + 1),2);
@@ -115,7 +122,7 @@ void backPropagate(neural_layer &out, neural_layer &hidden, MatrixXd actuals, Ma
     //cout << C_p_w << endl;
    
     // Chunk that update the weights of the layers
-    double learn_rate = 0.5;
+    double learn_rate = 0.01;
     count = 0;
     for(int i = 0; i<out.weights.rows(); i++){
         out.weights(i, 0) = out.weights(i, 0) - learn_rate*C_p_w(count, 0);
@@ -177,7 +184,7 @@ void readDatatoMat (const string fileName, MatrixXd &mat){ // Matrix is passed b
         }
     }
     dataFile.close(); //We have to close it now because were at the botton of the data file
-    cout << "Number of Rows is: " << num_rows << " Number of Columns is: " << num_cols << endl;
+    //cout << "Number of Rows is: " << num_rows << " Number of Columns is: " << num_cols << endl;
     // Second loop to populate the matrix with the data values
     mat.resize(num_rows, num_cols);
     dataFile.open(fileName); //Reopen the csv file from the top
@@ -268,10 +275,31 @@ void splitData(MatrixXd &td, MatrixXd &xtrain, MatrixXd &ytrain, MatrixXd &xtest
     int numCols = td.cols();
     int trainRows = round(numRows * 0.7);
 
-    xtrain = td.block(0, 0, trainRows, numCols - 1);
-    ytrain = td.block(0, numCols-1, trainRows, 1);
-    xtest = td.block(trainRows, 0, numRows - trainRows, numCols - 1);
-    ytest = td.block(trainRows, numCols - 1, numRows - trainRows, 1);
+    // Create a matrix that is randomly sorted with the total data set
+    MatrixXd random(numRows, numCols);
+    // Keep track which rows have been populated
+    vector<int> rowCount;
+
+    int rowindex = 0;
+    for(int i = 0; i<numRows; i++){
+        rowindex = rand() % numRows; // Random number between 0 and number of rows in data - 1
+        // Check if the row index has already been called upon
+        int j = 0;
+        for(j; j<rowCount.size(); j++){
+            if(rowCount[j] == rowindex){ // If that row has already been called then regenerate and restart the checking process
+                rowindex = rand() % numRows;
+                j = 0;
+            }
+        }
+        rowCount.push_back(rowindex);
+        random.row(i) = td.row(rowindex); 
+    }
+
+    xtrain = random.block(0, 0, trainRows, numCols - 1);
+    ytrain = random.block(0, numCols-1, trainRows, 1);
+    xtest = random.block(trainRows, 0, numRows - trainRows, numCols - 1);
+    ytest = random.block(trainRows, numCols - 1, numRows - trainRows, 1);
+
     return;
 }
 
@@ -366,26 +394,51 @@ int main()
     normalizeData(x_training, x_training.rows(), x_training.cols());
     normalizeData(x_testing, x_testing.rows(), x_testing.cols());
 
-    MatrixXd in(1, 4);
-    in << 1, 2, 3, 4;
-    neural_layer hidden_layer1(4, 3);
-    //cout << "Weights of hidden layer are: " << endl;
-    //readData(hidden_layer1.weights);
-    //cout << "Biases of hidden layer are: " << endl;
-    //readData(hidden_layer1.biases);
-    hidden_layer1.weightedSum(in);
+    //Create the hidden layer and the output layer
+    neural_layer hidden_layer(x_training.cols(), 13);
+    neural_layer out_layer(13, 1);
+    
+    // Ask the user what epoch size they would like (for education purposes were gonn test to see which is the best that reaches the lowest cost function output)
+    // Need a double for loop, outer for the epoch, inner to go through the whole training dataset
+
+    /*for(int epoch = 0; epoch<1; epoch++){
+        for(int i = 0; i<170; i++){
+            // Forward propagate the neural network
+            //cout << "Input to hidden layer: " << x_training.row(i) << endl;
+            hidden_layer.weightedSum(x_training.row(i));
+            hidden_layer.ReLUactivation();
+            //cout << "Hidden Layer Output is: " << hidden_layer.outputs << endl;
+            //cout << "Input to output layer: " << hidden_layer.outputs << endl;
+            out_layer.weightedSum(hidden_layer.outputs);
+            cout << "Output Layer Weights: " << out_layer.weights << endl;
+            cout << "Output Layer Weighted Sum: " << out_layer.outputs << endl;
+            out_layer.Sigactivation();
+            cout << "Neural Network Output: " << out_layer.outputs << endl;
+            cout << "Actual Output: " << y_training.row(i) << endl;
+            // Find the cost function result
+            out_layer.costFunction(y_training.row(i));
+            cout << "Cost Function Output: " << endl << out_layer.costResult << endl;
+            
+            backPropagate(out_layer, hidden_layer, y_training.row(i), x_training.row(i)); 
+            /*cout << "New Weights for Hidden are: " << endl;
+            cout << hidden_layer.weights << endl;
+            cout << "New Weights for Output are: " << endl;
+            cout << out_layer.weights << endl;*/ 
+        //}
+    //}
+    /*hidden_layer1.weightedSum(in);
     hidden_layer1.ReLUactivation();
     cout << "Activated hidden layer output: " << endl;
-    readData(hidden_layer1.outputs);
-    neural_layer out_layer(3, 1);
+    readData(hidden_layer1.outputs);*/
+    
     //cout << "Weights of output layer are: " << endl;
     //readData(out_layer.weights);
-    out_layer.weightedSum(hidden_layer1.outputs);
+    /*out_layer.weightedSum(hidden_layer1.outputs);
     out_layer.Sigactivation();
     cout << "Activated output layer output: " << endl;
     readData(out_layer.outputs);
     MatrixXd out(1, 1);
-    out << 1;
+    out << 0;
     out_layer.costFunction(out);
     cout << "Cost Function Output: " << endl;
     readData(out_layer.costResult);
@@ -393,17 +446,15 @@ int main()
     readData(hidden_layer1.weights);
     cout << "Output Layer Old Weights: " << endl;
     readData(out_layer.weights);
-
     backPropagate(out_layer, hidden_layer1, out, in);
      cout << "Hidden Layer New Weights: " << endl;
     readData(hidden_layer1.weights);
     cout << "Output Layer New Weights: " << endl;
-    readData(out_layer.weights);
+    readData(out_layer.weights);*/
 
-    // Because this is a binary clssification problem, we need to use a cross entropy (ie logarithmic loss) loss function to compare the output and actual values
     // Also need to implement the batch and epoch user interface of the neural network 
    
-
+    
     
     //Input the heart data into the program 
     /*vector<vector<string>> sdata;
