@@ -174,8 +174,8 @@ void predict(MatrixXd x_test, MatrixXd y_test, MatrixXd x_train, MatrixXd y_trai
         hidden.ReLUactivation();
         out.weightedSum(hidden.outputs);
         out.Sigactivation();
-        cout << "Predicted Value is: " << out.outputs << endl;
-        cout << "Actual Value is: " << y_test(i,0) << endl;
+        //cout << "Predicted Value is: " << out.outputs << endl;
+        //cout << "Actual Value is: " << y_test(i,0) << endl;
         if(out.outputs(0,0) > 0.9 && y_test(i,0) == 1){
             correct++;
         }
