@@ -466,7 +466,7 @@ int main()
     double loss = 0;
     string s_epoch, s_loss;
     cout << "Training the network" << endl;
-    for(int epoch = 0; epoch<2000; epoch++){
+    for(int epoch = 0; epoch<1300; epoch++){
         for(int i = 0; i<x_training.rows(); i++){
             // Forward propagate the neural network
             //cout << "Input to hidden layer: " << x_training.row(i) << endl;
@@ -505,7 +505,7 @@ int main()
             cout << out_layer.weights << endl;*/ 
         }
         //avgerror = avgerror / x_training.rows();
-        //cout << "Total cost for epoch " << epoch << " is " << loss << endl;
+        cout << "Total cost for epoch " << epoch << " is " << loss << endl;
         //s_epoch = to_string(epoch);
         //s_loss = to_string(loss);
         //bool updateLoss = writetoCSV("Epoch vs Loss.csv", s_epoch, s_loss);
