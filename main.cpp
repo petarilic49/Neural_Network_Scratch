@@ -145,6 +145,20 @@ void backPropagate(neural_layer &out, neural_layer &hidden, MatrixXd actuals, Ma
     return;
 }
 
+void predict(MatrixXd x_test, MatrixXd y_test, neural_layer &hidden, neural_layer &out){ // Function that will take the neural layers and just do forward propagation to get the outputs and compare to the actual output
+    // Accuracy is equal to number of correct predictions / number of total predictions (for simplicity im gonna use a cut off to see if its right or wrong)
+    int correct = 0;
+    for(int i = 0; i<x_test.rows(); i++){
+        hidden.weightedSum(x_test.row(i));
+        hidden.ReLUactivation();
+        out.weightedSum(hidden.outputs);
+        out.Sigactivation();
+        cout << "Predicted Value is: " << out.outputs << endl;
+        cout << "Actual Value is: " << y_test.row(i) << endl;
+    }
+    return;
+}
+
 // Function reads the .csv file and stores/returns the data inputs in a 2D vector
 /*vector<vector<string>> readDataFile(string fileName){
 
@@ -386,6 +400,16 @@ void normalizeData(MatrixXd &m, int rows, int cols){
     return;
 }*/
 
+// Function that writes to a .csv file which will show the decrease in loss over time with each iteration of epoch
+bool writetoCSV(const string filename, const string epoch, const string loss){
+    ofstream lossfile;
+    lossfile.open(filename, ios_base::app); // The ios_base::app make sures that the new data is appended into the .csv file and does not overwrite what is there
+    lossfile << epoch << "," << loss << endl;
+    lossfile.close();
+
+    return true;
+}
+
 int main()
 {
     // 2.0
@@ -407,9 +431,10 @@ int main()
     
     // Ask the user what epoch size they would like (for education purposes were gonn test to see which is the best that reaches the lowest cost function output)
     // Need a double for loop, outer for the epoch, inner to go through the whole training dataset
-    double avgerror = 0;
-
-    for(int epoch = 0; epoch<150; epoch++){
+    double loss = 0;
+    string s_epoch, s_loss;
+    cout << "Training the network" << endl;
+    for(int epoch = 0; epoch<1300; epoch++){
         for(int i = 0; i<x_training.rows(); i++){
             // Forward propagate the neural network
             //cout << "Input to hidden layer: " << x_training.row(i) << endl;
@@ -426,14 +451,14 @@ int main()
             // Find the cost function result
             out_layer.costFunction(y_training.row(i));
             //cout << "Cost Function Output: " << endl << out_layer.costResult << endl;
-            avgerror = avgerror + out_layer.costResult;
-            /*if(epoch == 70 && (i == 32 || i == 33 || i == 34)){
-                cout << "The weights of the first neuron of hidden layer is: " << endl << hidden_layer.weights.col(0) << endl;
-                cout << "The weights of the output layer: " << endl << out_layer.weights << endl;
+            //loss = loss + out_layer.costResult;
+            /*if(epoch == 999){
+                //cout << "The weights of the first neuron of hidden layer is: " << endl << hidden_layer.weights.col(0) << endl;
+                //cout << "The weights of the output layer: " << endl << out_layer.weights << endl;
                 cout << "Neural Network Output: " << out_layer.outputs << endl;
                 cout << "Actual Output: " << y_training.row(i) << endl;
                 cout << "Cost Function Output: " << endl << out_layer.costResult << endl;
-                backPropagate(out_layer, hidden_layer, y_training.row(i), x_training.row(i), 1);
+                backPropagate(out_layer, hidden_layer, y_training.row(i), x_training.row(i), 0);
             }*/
             /*if(out_layer.outputs(0,0) == 1){
                 cout << "The weights of the hidden layer are: " << endl << hidden_layer.weights << endl;
@@ -446,9 +471,14 @@ int main()
             cout << out_layer.weights << endl;*/ 
         }
         //avgerror = avgerror / x_training.rows();
-        cout << "Total cost for epoch " << epoch << " is " << avgerror << endl;
-        avgerror = 0;
+        //cout << "Total cost for epoch " << epoch << " is " << loss << endl;
+        //s_epoch = to_string(epoch);
+        //s_loss = to_string(loss);
+        //bool updateLoss = writetoCSV("Epoch vs Loss.csv", s_epoch, s_loss);
+        //loss = 0;
     }
+    cout << "Predicting heart failures" << endl;
+    predict(x_testing, y_testing, hidden_layer, out_layer);
     /*hidden_layer1.weightedSum(in);
     hidden_layer1.ReLUactivation();
     cout << "Activated hidden layer output: " << endl;
