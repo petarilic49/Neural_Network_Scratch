@@ -11,6 +11,8 @@
 using namespace std;
 using Eigen::MatrixXd;
 
+bool writetoCSV(const string filename, const string epoch, const string loss);
+
 // Create a class that will stores a dense layer
 class neural_layer{
     public:
@@ -28,7 +30,6 @@ class neural_layer{
             // Initialize the outputs of the layer and set to 0
             outputs.resize(1, neurons);
             outputs.setZero();
-            //srand(time(NULL)); // For some reason this was making the weights of the output layer identical to the first row of weights in the hidden layer weights matrix
             for(int i = 0; i<weights.rows(); i++){
                 for(int j = 0; j<weights.cols(); j++){
                     weights(i, j) = (double)rand()/RAND_MAX - 0.35; // Added the -0.35 to offset the weights and make sure we have negative weights
@@ -75,19 +76,6 @@ class neural_layer{
                 hold = 0;
             }
             costResult = hold;
-    
-            /*double hold = 0;
-            for(int i = 0; i<actuals.cols(); i++){ // Only need one for loop because we know the actuals are transpose to row vector
-                if(actuals(0, i) == 1){
-                    hold = hold + (-1.0 * log(outputs(0,i)));
-                }
-                else if(actuals(0,i) == 0){
-                    hold = hold + (-1.0 * log(1 - outputs(0,i)));
-                }
-                if(i == (actuals.cols() - 1)){
-                    costResult(costResult.rows() - 1, 0) = (hold / (i + 1));
-                }
-            }*/
         }
 };
 
@@ -103,9 +91,6 @@ void backPropagate(neural_layer &out, neural_layer &hidden, MatrixXd actuals, Ma
     //cout << "C_p_y: " << C_p_y << endl;
     for(int i = 0; i<hidden.outputs.cols(); i++){
         // Find the gradient of the first output 
-        //y_p_z = exp(hidden.outputs(0,i)) / pow((exp(hidden.outputs(0,i)) + 1),2);
-        //y_p_z = out.outputs(0,0)*(1-out.outputs(0,0));
-        //cout<<"Inputting " << count << " index for the gradient vector" << endl;
         C_p_w(count, 0) = C_p_y * hidden.outputs(0,i);
         //cout << "Gradient is: " << C_p_w(count, 0) << endl;
         count++;
@@ -128,8 +113,6 @@ void backPropagate(neural_layer &out, neural_layer &hidden, MatrixXd actuals, Ma
             
         }
     }
-    //cout << "The gradient vector is: " << endl;
-    //cout << C_p_w << endl;
    
     // Chunk that update the weights of the layers
     double learn_rate = 0.005;
@@ -150,13 +133,17 @@ void backPropagate(neural_layer &out, neural_layer &hidden, MatrixXd actuals, Ma
 
 void predict(MatrixXd x_test, MatrixXd y_test, MatrixXd x_train, MatrixXd y_train, neural_layer &hidden, neural_layer &out){ // Function that will take the neural layers and just do forward propagation to get the outputs and compare to the actual output
     // Accuracy is equal to number of correct predictions / number of total predictions (for simplicity im gonna use a cut off to see if its right or wrong)
-    int correct = 0;
+    double correct = 0, accuracy = 0;
+    string s_pred, s_actual;
     cout << "Training Data Accuracy" << endl;
     for(int i = 0; i<x_train.rows(); i++){
         hidden.weightedSum(x_train.row(i));
         hidden.ReLUactivation();
         out.weightedSum(hidden.outputs);
         out.Sigactivation();
+        s_pred = to_string(out.outputs(0,0));
+        s_actual = to_string(y_train(i,0));
+        bool updatePrediction = writetoCSV("Predictions vs Actual.csv", s_pred, s_actual);
         //cout << "Predicted Value is: " << out.outputs << endl;
         //cout << "Actual Value is: " << y_test(i,0) << endl;
         if(out.outputs(0,0) > 0.9 && y_train(i,0) == 1){
@@ -166,14 +153,18 @@ void predict(MatrixXd x_test, MatrixXd y_test, MatrixXd x_train, MatrixXd y_trai
             correct++;
         }
     }
-    cout << "Number of correct training predictions: " << correct << endl;
-    cout << "Number of training predictions: " << x_train.rows() << endl;
+    accuracy = 100*(correct/x_train.rows());
+    cout << "Training Accuracy is: " << accuracy << "%" << endl;
     correct = 0;
+    bool updatePrediction = writetoCSV("Predictions vs Actual.csv", "Testing Predictions", "Testing Actuals");
     for(int i = 0; i<x_test.rows(); i++){
         hidden.weightedSum(x_test.row(i));
         hidden.ReLUactivation();
         out.weightedSum(hidden.outputs);
         out.Sigactivation();
+        s_pred = to_string(out.outputs(0,0));
+        s_actual = to_string(y_test(i,0));
+        bool updatePrediction = writetoCSV("Predictions vs Actual.csv", s_pred, s_actual);
         //cout << "Predicted Value is: " << out.outputs << endl;
         //cout << "Actual Value is: " << y_test(i,0) << endl;
         if(out.outputs(0,0) > 0.9 && y_test(i,0) == 1){
@@ -183,43 +174,11 @@ void predict(MatrixXd x_test, MatrixXd y_test, MatrixXd x_train, MatrixXd y_trai
             correct++;
         }
     }
-    //double accuracy = 0;
-    //accuracy = 100 * (correct/x_test.rows());
-    cout << "Number of correct predictions: " << correct << endl;
-    cout << "Number of predictions: " << x_test.rows() << endl;
+    accuracy = 100*(correct/x_test.rows());
+    cout << "Testing Accuracy is: " << accuracy << "%" << endl;
     //cout <<"Accuracy of the model is: " << accuracy << "%" << endl;
     return;
 }
-
-// Function reads the .csv file and stores/returns the data inputs in a 2D vector
-/*vector<vector<string>> readDataFile(string fileName){
-
-    //Input the heart data into the program 
-    ifstream dataFile;
-    dataFile.open(fileName);
-    vector<vector<string>> dataEntries;
-    string inputs[14];
-    vector<string> rowData;
-    while(getline(dataFile, inputs[0], ',')){
-        for(int i = 1; i<14; i++){
-            if(i != 13){
-                getline(dataFile, inputs[i], ',');
-            }
-            else{
-                getline(dataFile, inputs[i], '\n');
-            }
-        }
-        for(int i = 0; i<14; i++){
-            rowData.push_back(inputs[i]);
-        }
-        dataEntries.push_back(rowData);
-        rowData.clear();
-        
-    }
-    dataFile.close();
-    cout << "Done Reading the heart file" << endl;
-    return dataEntries;
-}*/
 
 void readDatatoMat (const string fileName, MatrixXd &mat){ // Matrix is passed by reference, therefore it will get changed in the main()
     // First loop through the file to get the number of rows and columns of inputs
@@ -269,59 +228,10 @@ void removeRow(MatrixXd &mat, int rowtoRemove){
     return;
 }
 
-/*void readDataInputs(vector<vector<double>> datainputs){
-    for(int i = 0; i<datainputs.size(); i++){
-        for(int j = 0; j<datainputs[i].size(); j++){
-            cout << datainputs[i][j] << " ";
-        }
-        cout << endl;
-    }
-    return;
-}*/
-
 void readData(MatrixXd &d){
     cout << d << endl;
     return;
 }
-
-/*void splitData(vector<vector<double>> totalData, vector<vector<double>> *xtraining, vector<vector<double>> *ytraining, vector<vector<double>> *xtesting, vector<vector<double>> *ytesting){
-    
-    vector<double> xrowdata, yrowdata;
-    
-    for(int i = 0; i<totalData.size(); i++){
-        if(i<round(totalData.size() * 0.7)){
-            for(int j = 0; j<totalData[i].size(); j++){
-                if(j<13){
-                    xrowdata.push_back(totalData[i][j]);
-                }
-                else{
-                    yrowdata.push_back(totalData[i][j]);
-                }
-                
-            }
-            xtraining->push_back(xrowdata);
-            xrowdata.clear();
-            ytraining->push_back(yrowdata);
-            yrowdata.clear();
-        }
-        else{
-            for(int j = 0; j<totalData[i].size(); j++){
-                if(j<13){
-                    xrowdata.push_back(totalData[i][j]);
-                }
-                else{
-                    yrowdata.push_back(totalData[i][j]);
-                }
-                
-            }
-            xtesting->push_back(xrowdata);
-            xrowdata.clear();
-            ytesting->push_back(yrowdata);
-            yrowdata.clear();
-        }
-    }
-    return;
-}*/
 
 void splitData(MatrixXd &td, MatrixXd &xtrain, MatrixXd &ytrain, MatrixXd &xtest, MatrixXd &ytest){
     int numRows = td.rows();
@@ -356,24 +266,6 @@ void splitData(MatrixXd &td, MatrixXd &xtrain, MatrixXd &ytrain, MatrixXd &xtest
     return;
 }
 
-//Function that will convert the 2D vector of strings into 2D vector of doubles
-/*vector<vector<double>> string_to_double(vector<vector<string>> d){
-    cout << "In conversion function" << endl;
-    vector<vector<double>> convertedData;
-    vector<double> rowHolder;
-    for(int i = 1; i<d.size(); i++){ // Starting at 1 because the first row is the name of the columns which we dont care about
-        for(int j = 0; j<d[i].size(); j++){ 
-            stringstream valHolder((d[i][j]));
-            double x = 0;
-            valHolder >> x;
-            rowHolder.push_back(x);
-        }
-        convertedData.push_back(rowHolder);
-        rowHolder.clear();
-    }
-    return convertedData;
-}*/
-
 void normalizeData(MatrixXd &m, int rows, int cols){
     int min = 10000;
     int max = 0;
@@ -401,36 +293,6 @@ void normalizeData(MatrixXd &m, int rows, int cols){
     return;
 
 }
-
-// Function that will normalize our input data
-/*void normalizeData(vector<vector<double>> *dt){
-    cout << "Normalizing Data" << endl;
-    double min = 10000;
-    double max = 0;
-    double hold = 0;
-    int col = 0;
-
-    while (col < 14){
-        for(int i = 0; i<dt->size(); i++){
-            if((*dt)[i][col] < min){
-                min = (*dt)[i][col];
-            }
-            else if((*dt)[i][col] > max){
-                max = (*dt)[i][col];
-            }
-        }
-        for(int i = 0; i<dt->size(); i++){
-            hold = (*dt)[i][col];
-            (*dt)[i][col] = ((*dt)[i][col] - min) / (max - min);
-        }
-        min = 10000;
-        max = 0;
-        col++;
-    }
-
-    cout << "Done normalizing data" << endl;
-    return;
-}*/
 
 // Function that writes to a .csv file which will show the decrease in loss over time with each iteration of epoch
 bool writetoCSV(const string filename, const string epoch, const string loss){
@@ -512,64 +374,12 @@ int main()
         loss = 0;
     }
     cout << "Predicting heart failures" << endl;
+    // Create the header column of the predictions vs actual .csv file
+    ofstream outputFile;
+    outputFile.open("Predictions vs Actual.csv", ios_base::app); // The ios_base::app make sures that the new data is appended into the .csv file and does not overwrite what is there
+    outputFile << "Predicted Training, Actual Training" << endl;
+    outputFile.close();
     predict(x_testing, y_testing, x_training, y_training, hidden_layer, out_layer);
-    /*hidden_layer1.weightedSum(in);
-    hidden_layer1.ReLUactivation();
-    cout << "Activated hidden layer output: " << endl;
-    readData(hidden_layer1.outputs);*/
     
-    //cout << "Weights of output layer are: " << endl;
-    //readData(out_layer.weights);
-    /*out_layer.weightedSum(hidden_layer1.outputs);
-    out_layer.Sigactivation();
-    cout << "Activated output layer output: " << endl;
-    readData(out_layer.outputs);
-    MatrixXd out(1, 1);
-    out << 0;
-    out_layer.costFunction(out);
-    cout << "Cost Function Output: " << endl;
-    readData(out_layer.costResult);
-    cout << "Hidden Layer Old Weights: " << endl;
-    readData(hidden_layer1.weights);
-    cout << "Output Layer Old Weights: " << endl;
-    readData(out_layer.weights);
-    backPropagate(out_layer, hidden_layer1, out, in);
-     cout << "Hidden Layer New Weights: " << endl;
-    readData(hidden_layer1.weights);
-    cout << "Output Layer New Weights: " << endl;
-    readData(out_layer.weights);*/
-
-    // Also need to implement the batch and epoch user interface of the neural network 
-   
-    
-    
-    //Input the heart data into the program 
-    /*vector<vector<string>> sdata;
-    sdata = readDataFile("heart.csv"); // The data is all stored as strings, but we need them as doubles
-    vector<vector<double>> data;
-    data = string_to_double(sdata); // Convert the dataset to vector of type double
-
-  
-    //readDataInputs(data);
-    vector<vector<double>> x_trainingData, y_trainingData, x_testingData, y_testingData;
-    // Next I want to split the data into training and testing data
-    splitData(data, &x_trainingData, &y_trainingData, &x_testingData, &y_testingData);
-
-    //Next want to scale the input data for best practice 
-    normalizeData(&x_trainingData);
-    normalizeData(&x_testingData);
-
-    // To make the computation of the neural network easier lets convert the vectors into matrices 
-
-
-
-    // We want weights for each neuron to be randomly selected within the range of -1 and 1, prevents output/data explosion
-    // In terms of biases initialize them as 0, but if you notice that the output is always 0 there may be a 'dead network' which means weights are multiplied by 0
-
-    Matrix<double, Dynamic, Dynamic> x_trainingMat;
-    x_trainingMat = vector_to_matrix(&x_trainingData);
-
-    cout << x_trainingMat << endl;*/
-
     return 0;
 }
