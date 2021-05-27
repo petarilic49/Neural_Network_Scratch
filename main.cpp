@@ -71,6 +71,9 @@ class neural_layer{
             else if(actuals(0,0) == 0){
                     hold = (-1.0 * log(1 - outputs(0,0)));
             }
+            if(hold == -0){
+                hold = 0;
+            }
             costResult = hold;
     
             /*double hold = 0;
@@ -94,16 +97,16 @@ void backPropagate(neural_layer &out, neural_layer &hidden, MatrixXd actuals, Ma
     MatrixXd C_p_w((out.weights.rows() * out.weights.cols()) + (hidden.weights.rows() * hidden.weights.cols()), 1); // Gradient vector (ie holds the gradient with respect to each weight)
     C_p_w.setZero();
     double C_p_y = 0; // Only one value because there is only one output from the neural network
-    double y_p_z = 0;
+    //double y_p_z = 0;
     int count = 0;
-    C_p_y = (out.outputs(0,0) - actuals(0,0))/((1 - out.outputs(0,0))*out.outputs(0,0));
+    C_p_y = (out.outputs(0,0) - actuals(0,0)); 
     //cout << "C_p_y: " << C_p_y << endl;
     for(int i = 0; i<hidden.outputs.cols(); i++){
         // Find the gradient of the first output 
         //y_p_z = exp(hidden.outputs(0,i)) / pow((exp(hidden.outputs(0,i)) + 1),2);
-        y_p_z = out.outputs(0,0)*(1-out.outputs(0,0));
+        //y_p_z = out.outputs(0,0)*(1-out.outputs(0,0));
         //cout<<"Inputting " << count << " index for the gradient vector" << endl;
-        C_p_w(count, 0) = C_p_y * y_p_z * hidden.outputs(0,i);
+        C_p_w(count, 0) = C_p_y * hidden.outputs(0,i);
         //cout << "Gradient is: " << C_p_w(count, 0) << endl;
         count++;
         for(int j = 0; j<hidden.weights.rows(); j++){
@@ -114,13 +117,13 @@ void backPropagate(neural_layer &out, neural_layer &hidden, MatrixXd actuals, Ma
                 der = 0;
             }
             //cout<<"Inputting " << count << " index for the gradient vector" << endl;
-            C_p_w(count, 0) = C_p_y * y_p_z * out.weights(i, 0) * der * inputs(0,j);
+            C_p_w(count, 0) = C_p_y * out.weights(i, 0) * der * inputs(0,j);
             if(C_p_w(count, 0) == -0){
                 C_p_w(count, 0) = 0;
             }
-            /*if(check){
-                cout << "Gradient val is: " << C_p_y << " * " << y_p_z << " * " << out.weights(i,0) << " * " << der << " * " << inputs(0,j) << " = " << C_p_w(count, 0) << endl;
-            }*/
+            if(check){
+                cout << "Gradient val is: " << C_p_y << " * " << out.weights(i,0) << " * " << der << " * " << inputs(0,j) << " = " << C_p_w(count, 0) << endl;
+            }
             count++;
             
         }
@@ -145,17 +148,46 @@ void backPropagate(neural_layer &out, neural_layer &hidden, MatrixXd actuals, Ma
     return;
 }
 
-void predict(MatrixXd x_test, MatrixXd y_test, neural_layer &hidden, neural_layer &out){ // Function that will take the neural layers and just do forward propagation to get the outputs and compare to the actual output
+void predict(MatrixXd x_test, MatrixXd y_test, MatrixXd x_train, MatrixXd y_train, neural_layer &hidden, neural_layer &out){ // Function that will take the neural layers and just do forward propagation to get the outputs and compare to the actual output
     // Accuracy is equal to number of correct predictions / number of total predictions (for simplicity im gonna use a cut off to see if its right or wrong)
     int correct = 0;
+    cout << "Training Data Accuracy" << endl;
+    for(int i = 0; i<x_train.rows(); i++){
+        hidden.weightedSum(x_train.row(i));
+        hidden.ReLUactivation();
+        out.weightedSum(hidden.outputs);
+        out.Sigactivation();
+        //cout << "Predicted Value is: " << out.outputs << endl;
+        //cout << "Actual Value is: " << y_test(i,0) << endl;
+        if(out.outputs(0,0) > 0.9 && y_train(i,0) == 1){
+            correct++;
+        }
+        else if(out.outputs(0,0) < 0.1 && y_train(i,0) == 0){
+            correct++;
+        }
+    }
+    cout << "Number of correct training predictions: " << correct << endl;
+    cout << "Number of training predictions: " << x_train.rows() << endl;
+    correct = 0;
     for(int i = 0; i<x_test.rows(); i++){
         hidden.weightedSum(x_test.row(i));
         hidden.ReLUactivation();
         out.weightedSum(hidden.outputs);
         out.Sigactivation();
         cout << "Predicted Value is: " << out.outputs << endl;
-        cout << "Actual Value is: " << y_test.row(i) << endl;
+        cout << "Actual Value is: " << y_test(i,0) << endl;
+        if(out.outputs(0,0) > 0.9 && y_test(i,0) == 1){
+            correct++;
+        }
+        else if(out.outputs(0,0) < 0.1 && y_test(i,0) == 0){
+            correct++;
+        }
     }
+    //double accuracy = 0;
+    //accuracy = 100 * (correct/x_test.rows());
+    cout << "Number of correct predictions: " << correct << endl;
+    cout << "Number of predictions: " << x_test.rows() << endl;
+    //cout <<"Accuracy of the model is: " << accuracy << "%" << endl;
     return;
 }
 
@@ -434,7 +466,7 @@ int main()
     double loss = 0;
     string s_epoch, s_loss;
     cout << "Training the network" << endl;
-    for(int epoch = 0; epoch<1300; epoch++){
+    for(int epoch = 0; epoch<2000; epoch++){
         for(int i = 0; i<x_training.rows(); i++){
             // Forward propagate the neural network
             //cout << "Input to hidden layer: " << x_training.row(i) << endl;
@@ -451,14 +483,16 @@ int main()
             // Find the cost function result
             out_layer.costFunction(y_training.row(i));
             //cout << "Cost Function Output: " << endl << out_layer.costResult << endl;
-            //loss = loss + out_layer.costResult;
-            /*if(epoch == 999){
-                //cout << "The weights of the first neuron of hidden layer is: " << endl << hidden_layer.weights.col(0) << endl;
-                //cout << "The weights of the output layer: " << endl << out_layer.weights << endl;
+            loss = loss + out_layer.costResult;
+            /*if((epoch == 1871 && i == 208) || (epoch == 1871 && i == 209)){
+                //cout<<"Epoch is: " << epoch << " and iteration is: " << i << endl;
+                cout << "The weights of hidden layer with epoch " << epoch << " is: " << endl << hidden_layer.weights << endl;
+                cout << "The output of the hidden layer is: " << hidden_layer.outputs << endl;
+                cout << "The weights of the output layer with epoch " << epoch << " is: " << endl << out_layer.weights << endl;
                 cout << "Neural Network Output: " << out_layer.outputs << endl;
                 cout << "Actual Output: " << y_training.row(i) << endl;
                 cout << "Cost Function Output: " << endl << out_layer.costResult << endl;
-                backPropagate(out_layer, hidden_layer, y_training.row(i), x_training.row(i), 0);
+                backPropagate(out_layer, hidden_layer, y_training.row(i), x_training.row(i), 1);
             }*/
             /*if(out_layer.outputs(0,0) == 1){
                 cout << "The weights of the hidden layer are: " << endl << hidden_layer.weights << endl;
@@ -475,10 +509,10 @@ int main()
         //s_epoch = to_string(epoch);
         //s_loss = to_string(loss);
         //bool updateLoss = writetoCSV("Epoch vs Loss.csv", s_epoch, s_loss);
-        //loss = 0;
+        loss = 0;
     }
     cout << "Predicting heart failures" << endl;
-    predict(x_testing, y_testing, hidden_layer, out_layer);
+    predict(x_testing, y_testing, x_training, y_training, hidden_layer, out_layer);
     /*hidden_layer1.weightedSum(in);
     hidden_layer1.ReLUactivation();
     cout << "Activated hidden layer output: " << endl;
