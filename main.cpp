@@ -168,16 +168,16 @@ void backPropagate(neural_layer &out, neural_layer &hidden, MatrixXd actuals, Ma
 void predict(MatrixXd x_test, MatrixXd y_test, MatrixXd x_train, MatrixXd y_train, neural_layer &hidden, neural_layer &out){ // Function that will take the neural layers and just do forward propagation to get the outputs and compare to the actual output
     // Accuracy is equal to number of correct predictions / number of total predictions (for simplicity im gonna use a cut off to see if its right or wrong)
     double correct = 0, accuracy = 0;
-    //string s_pred, s_actual;
+    string s_pred, s_actual;
     cout << "Training Data Accuracy" << endl;
     for(int i = 0; i<x_train.rows(); i++){
         hidden.weightedSum(x_train.row(i));
         hidden.ReLUactivation();
         out.weightedSum(hidden.outputs);
         out.Sigactivation();
-        //s_pred = to_string(out.outputs(0,0));
-        //s_actual = to_string(y_train(i,0));
-        //bool updatePrediction = writetoCSV("Predictions vs Actual.csv", s_pred, s_actual);
+        s_pred = to_string(out.outputs(0,0));
+        s_actual = to_string(y_train(i,0));
+        bool updatePrediction = writetoCSV("Predictions vs Actual.csv", s_pred, s_actual);
         //cout << "Predicted Value is: " << out.outputs << endl;
         //cout << "Actual Value is: " << y_test(i,0) << endl;
         if(out.outputs(0,0) > 0.9 && y_train(i,0) == 1){
@@ -190,15 +190,15 @@ void predict(MatrixXd x_test, MatrixXd y_test, MatrixXd x_train, MatrixXd y_trai
     accuracy = 100*(correct/x_train.rows());
     cout << "Training Accuracy is: " << accuracy << "%" << endl;
     correct = 0;
-    //bool updatePrediction = writetoCSV("Predictions vs Actual.csv", "Testing Predictions", "Testing Actuals");
+    bool updatePrediction = writetoCSV("Predictions vs Actual.csv", "Testing Predictions", "Testing Actuals");
     for(int i = 0; i<x_test.rows(); i++){
         hidden.weightedSum(x_test.row(i));
         hidden.ReLUactivation();
         out.weightedSum(hidden.outputs);
         out.Sigactivation();
-        //s_pred = to_string(out.outputs(0,0));
-        //s_actual = to_string(y_test(i,0));
-        //bool updatePrediction = writetoCSV("Predictions vs Actual.csv", s_pred, s_actual);
+        s_pred = to_string(out.outputs(0,0));
+        s_actual = to_string(y_test(i,0));
+        bool updatePrediction = writetoCSV("Predictions vs Actual.csv", s_pred, s_actual);
         //cout << "Predicted Value is: " << out.outputs << endl;
         //cout << "Actual Value is: " << y_test(i,0) << endl;
         if(out.outputs(0,0) > 0.9 && y_test(i,0) == 1){
@@ -362,7 +362,7 @@ int main()
     double loss = 0;
     string s_epoch, s_loss;
     cout << "Training the network" << endl;
-    for(int epoch = 0; epoch<2000; epoch++){
+    for(int epoch = 0; epoch<1500; epoch++){
         for(int i = 0; i<x_training.rows(); i++){
             // Forward propagate the neural network
             //cout << "Input to hidden layer: " << x_training.row(i) << endl;
@@ -409,10 +409,10 @@ int main()
     }
     cout << "Predicting heart failures" << endl;
     // Create the header column of the predictions vs actual .csv file
-    /*ofstream outputFile;
+    ofstream outputFile;
     outputFile.open("Predictions vs Actual.csv", ios_base::app); // The ios_base::app make sures that the new data is appended into the .csv file and does not overwrite what is there
     outputFile << "Predicted Training, Actual Training" << endl;
-    outputFile.close();*/
+    outputFile.close();
     predict(x_testing, y_testing, x_training, y_training, hidden_layer, out_layer);
     
     return 0;
