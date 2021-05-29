@@ -11,8 +11,6 @@
 using namespace std;
 using Eigen::MatrixXd;
 
-bool writetoCSV(const string filename, const string epoch, const string loss);
-
 // Create a class that will stores a dense layer
 class neural_layer{
     public:
