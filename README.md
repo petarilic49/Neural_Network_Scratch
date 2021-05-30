@@ -69,3 +69,8 @@ Once the epoch was chosen the number of neurons for the hidden layer was selecte
 
 # Result and Accuracy
 
+![image](https://user-images.githubusercontent.com/37299986/120120882-6cbfbb00-c16e-11eb-8c85-de0698260574.png)
+
+
+Training Accuracy is: 86.3208%
+Testing Accuracy is: 72.5275%
