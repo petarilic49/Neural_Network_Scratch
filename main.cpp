@@ -68,7 +68,7 @@ class neural_layer{
             }
             return;
         }
-        // Since this is a binary classification problem it is best to use a binary cross entropy cost function to for Stochastic Gradient Decent Learning (SGD) 
+        // Since this is a binary classification problem it is best to use a binary cross entropy cost function to for Gradient Decent Learning  
         // Cost Function = -ylog(y_hat) - (1-y)log(1-y_hat)
         void costFunction (MatrixXd actuals){ // Assuming that we are training the model with a batch size of just 1 since the dataset is so small 
             double hold = 0;
@@ -85,7 +85,7 @@ class neural_layer{
         }
 };
 
-// Function purpose is to perform backpropagation through the neural network by calculating the partial derivatives of the cost function with respect to each weight and bias in the network (ie perform SGD and apply the change to the weight/bias)
+// Function purpose is to perform backpropagation through the neural network by calculating the partial derivatives of the cost function with respect to each weight and bias in the network (ie perform gradient descent and apply the change to the weight/bias)
 void backPropagate(neural_layer &out, neural_layer &hidden, MatrixXd actuals, MatrixXd inputs){ 
     // Initialize a column vector that will hold the gradients for each weight and set to zero
     MatrixXd C_p_w((out.weights.rows() * out.weights.cols()) + (hidden.weights.rows() * hidden.weights.cols()), 1); // Gradient vector (ie holds the gradient with respect to each weight)
