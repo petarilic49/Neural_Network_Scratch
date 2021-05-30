@@ -1,4 +1,4 @@
-# Neural_Network_Scratch
+# Neural Network to Predict Heart Failure
 
 Neural Network Visual Model: 
 ![image](https://user-images.githubusercontent.com/37299986/120112367-87306f00-c143-11eb-8706-97683beacd93.png)
