@@ -59,3 +59,13 @@ Output Neuron Gradient Descent Derivation for Weights and Bias
 
 The hidden layer gradient descent derivations are slightly more computational but nonetheless easily obtainable. 
 Hidden Layer Neuron Gradient Descent Derivation for Weights and Biases
+
+# Tuning Neural Network Model Parameters
+Now that both forward and backward propagation is setup for the neural network, it is time to put the model to the test and decide on a few hyperparameters to tweak. Since this is a simple neural network model with only one hidden layer and a small dataset the two parameters that we have control to tweak are the epoch and the number of neurons within the hidden layer. First we will pick the appropriate epoch size. To put it simply, the epoch value is the number of times the neural network will work through the training dataset. In theory, the epoch value can be between 1 and infinity, alhtough a high epoch value may not always be beneficial. Practically we want to choose an epoch value as high as possible so we ensure our neural network has had time to learn from the training data, however if we choose an epoch value that is too large we may introduce the problem of overfitting. The best way to choose an epoch is to plot the number of epochs vs the total loss of the network. The plot below displays the epoch number versus the accumulated loss function per training dataset. 
+![image](https://user-images.githubusercontent.com/37299986/120120777-975d4400-c16d-11eb-9506-d53453afbd12.png)
+As you can see, as the number of epochs increases the accumulated loss per training dataset is reduced and in fact begins to converge. To ensure we do not overfit our model, an epoch of 1500 was chosen for this problem. 
+
+Once the epoch was chosen the number of neurons for the hidden layer was selected. This was done purely by trial and error while using an epoch of 1500. The obtained optimal number of neurons for the hidden layer was chosen to be 15. 
+
+# Result and Accuracy
+
