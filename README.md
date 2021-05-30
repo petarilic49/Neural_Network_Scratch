@@ -79,4 +79,5 @@ Testing Accuracy is: 72.5275%
 # Future Reccomendations
 Picking a stronger dataset. 
 ![image](https://user-images.githubusercontent.com/37299986/120120914-b3151a00-c16e-11eb-9260-caaf3d8b6908.png)
+Better accuracy metric.
 
