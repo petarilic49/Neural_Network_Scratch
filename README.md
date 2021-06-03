@@ -69,15 +69,15 @@ Once the epoch was chosen the number of neurons for the hidden layer was selecte
 
 # Result and Accuracy
 
-![image](https://user-images.githubusercontent.com/37299986/120120882-6cbfbb00-c16e-11eb-8c85-de0698260574.png)
+![image](https://user-images.githubusercontent.com/37299986/120574987-45772100-c3ee-11eb-8c72-45df2d7fd5a8.png)
 
+Training Accuracy is: 95.283%
 
-Training Accuracy is: 86.3208%
-
-Testing Accuracy is: 72.5275%
+Testing Accuracy is: 81.3187%
 
 # Future Reccomendations
-Picking a stronger dataset. 
+Like all projects, there is always room for imporvement. In particular for this project a big improvement enhancement would be picking a stronger dataset. As mentioned earlier above, the dataset chosen only had 304 entries to work with. In the Machine Learning field this is extremely small, thus making a model that is capable of performing accurately in the testing phase extremely difficult without overfitting the data to the training dataset. One way to accomodate this would be to add a possible additional hidden layer to the nerual network which would be able to model more complex data trends without overfitting the model. This will be a future add in to the current C++ code. In addition to the small dataset, it was found late into the project that the input values do not strongly correlate to the output of the predicted heart failure. The figure below displays the correlation coefficient of each input field to the output (ei if patient has heart failure). As shown below, none of the input fields display a strong correlation to the output thus making it even harder for the network to train.  
 ![image](https://user-images.githubusercontent.com/37299986/120120914-b3151a00-c16e-11eb-9260-caaf3d8b6908.png)
-Better accuracy metric.
+
+Lastly, a big room for improvement and future add on to this project would be to design a better system to calculate the accuracy of the model. Since this was a small dataset, the accuracy could be represented by assuming a predicted output probability of 0.5 and above indicated a heart failure and anything less indicated no heart failure. A better and more practical method of calculating the accuracy of a binary classification model is to generate the F1 score of the model which takes into account both the precision and recall of the network. 
 
