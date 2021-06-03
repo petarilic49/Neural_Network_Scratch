@@ -329,15 +329,17 @@ void predict(MatrixXd x_test, MatrixXd y_test, MatrixXd x_train, MatrixXd y_trai
         hidden.ReLUactivation();
         out.weightedSum(hidden.outputs);
         out.Sigactivation();
-        // Store the values of the predicted value and actual value output and send to writetoCSV function which will update an excel file with all the outputs
+        // Store the values of the predicted value (ie the probability of heart failure) and actual value output and send to writetoCSV function which will update an excel file with all the outputs
+
         s_pred = to_string(out.outputs(0,0));
         s_actual = to_string(y_train(i,0));
         bool updatePrediction = writetoCSV("Predictions vs Actual.csv", s_pred, s_actual);
         // The below if statement is treated as a cutoff value to determine which predicted outputs were correct and which were not
-        if(out.outputs(0,0) > 0.9 && y_train(i,0) == 1){
+        // If the probability is greater than 50% then the output of the network is 1, otherwise it is 0
+        if(out.outputs(0,0) > 0.5 && y_train(i,0) == 1){
             correct++;
         }
-        else if(out.outputs(0,0) < 0.1 && y_train(i,0) == 0){
+        else if(out.outputs(0,0) < 0.5 && y_train(i,0) == 0){
             correct++;
         }
     }
@@ -355,10 +357,10 @@ void predict(MatrixXd x_test, MatrixXd y_test, MatrixXd x_train, MatrixXd y_trai
         s_pred = to_string(out.outputs(0,0));
         s_actual = to_string(y_test(i,0));
         bool updatePrediction = writetoCSV("Predictions vs Actual.csv", s_pred, s_actual);
-        if(out.outputs(0,0) > 0.9 && y_test(i,0) == 1){
+        if(out.outputs(0,0) > 0.5 && y_test(i,0) == 1){
             correct++;
         }
-        else if(out.outputs(0,0) < 0.1 && y_test(i,0) == 0){
+        else if(out.outputs(0,0) < 0.5 && y_test(i,0) == 0){
             correct++;
         }
     }
@@ -395,7 +397,7 @@ int main()
     cout << "Training the network" << endl;
     // Need a double for loop, outer for the epoch, inner to go through the whole training dataset
     // Epoch is set to be at 1500 through trial and error
-    for(int epoch = 0; epoch<1500; epoch++){
+    for(int epoch = 0; epoch<900; epoch++){
         for(int i = 0; i<x_training.rows(); i++){
             // Forward propagate the neural network
             hidden_layer.weightedSum(x_training.row(i));
@@ -410,9 +412,9 @@ int main()
         }
         cout << "Total cost for epoch " << epoch << " is " << loss << endl;
         // Update a .csv with the current epoch number and its corresponding accumulated loss which will be used to determine which epoch to choose without overfitting the network
-        s_epoch = to_string(epoch);
-        s_loss = to_string(loss);
-        bool updateLoss = writetoCSV("Epoch vs Loss.csv", s_epoch, s_loss);
+        //s_epoch = to_string(epoch);
+        //s_loss = to_string(loss);
+        //bool updateLoss = writetoCSV("Epoch vs Loss.csv", s_epoch, s_loss);
         loss = 0;
     }
     cout << "Predicting heart failures" << endl;
